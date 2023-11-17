@@ -1,4 +1,4 @@
 pub mod session;
 
 #[cfg(feature = "session-storage-memory")]
-pub use session::storage::memory::MemorySessionStorage;
+pub use session::backends::memory::MemorySessionBackend;

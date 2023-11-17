@@ -3,10 +3,8 @@ use axum::{
     extract::FromRequestParts,
     http::{request::Parts, StatusCode},
 };
-use tower_cookies::Cookies;
-use uuid::Uuid;
 
-use crate::session::{storage::SessionStorageExt, Session, SessionData};
+use crate::session::{Session, SessionData};
 
 #[async_trait]
 impl<D: SessionData + 'static, State> FromRequestParts<State> for Session<D> {
@@ -16,39 +14,15 @@ impl<D: SessionData + 'static, State> FromRequestParts<State> for Session<D> {
         parts: &mut Parts,
         _state: &State,
     ) -> Result<Self, Self::Rejection> {
-        // Return the session from the request extensions if it
-        // was already loaded.
-        if let Some(session) = parts.extensions.get::<Self>() {
-            return Ok(session.clone());
-        }
-
-        // Create a new session object otherwise.
-        let session = Session::<D>::default();
-        parts.extensions.insert(session.clone());
-
-        // Get session id from cookie
-        let Some(cookies) = parts.extensions.get::<Cookies>() else {
+        let Some(session) = parts.extensions.get::<Self>() else {
             return Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "Can't extract cookies from request.",
+                "Can't extract session from request. Did you forget to add the SessionLayer?",
             ));
         };
-        let Some(cookie) = cookies.get(D::COOKIE_NAME) else {
-            return Ok(session);
-        };
-        let Ok(session_id) = Uuid::parse_str(cookie.value()) else {
-            return Ok(session);
-        };
-        let Some(storage) = parts.extensions.get::<SessionStorageExt<D>>() else {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Can't extract session storage from request.",
-            ));
-        };
-        let Some(data) = storage.load(session_id).await else {
-            return Ok(session);
-        };
-        session.data.lock().unwrap().replace(data);
+        let session = session.clone();
+        // FIXME add proper error handling
+        let _ = session.load().await;
         Ok(session)
     }
 }
