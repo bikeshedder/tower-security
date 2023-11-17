@@ -2,5 +2,5 @@
 
 ## Highlights
 
-[x] Fully typed sessions with pluggable storage
-[ ] CSRF protection
+- [x] Fully typed sessions with pluggable storage
+- [ ] CSRF protection
