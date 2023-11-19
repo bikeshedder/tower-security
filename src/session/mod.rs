@@ -22,6 +22,9 @@ pub struct Session<D: SessionData> {
     backend: SessionBackendWrapper<D>,
 }
 
+#[cfg(feature = "derive")]
+pub use tower_security_derive::SessionData;
+
 impl<D: SessionData + fmt::Debug> fmt::Debug for Session<D> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &*self.inner.try_lock().unwrap();

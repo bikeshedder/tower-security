@@ -11,13 +11,10 @@ use tower_security::session::{
     backends::memory::MemorySessionBackend, tower::SessionLayer, Session,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, tower_security::session::SessionData)]
+#[session(cookie_name = "example_session")]
 struct SessionData {
     data: String,
-}
-
-impl tower_security::session::SessionData for SessionData {
-    const COOKIE_NAME: &'static str = "example_session";
 }
 
 #[tokio::main]
